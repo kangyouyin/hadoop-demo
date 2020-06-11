@@ -13,12 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 
@@ -33,6 +31,10 @@ public class TestHDFS {
     @Before
     public void conn() throws Exception {
         conf = new Configuration(true);
+        conf.addResource("./cluster/core-site.xml");
+        conf.addResource("./cluster/hdfs-site.xml");
+        conf.addResource("./cluster/yarn-site.xml");
+        conf.addResource("./cluster/mapred-site.xml");
 //        fs = FileSystem.get(conf);
         // Permission denied: user=kangyouyin, access=WRITE, inode="/user":root
         // 方式一：配置环境变量 HADOOP_USER_NAME root
@@ -60,7 +62,7 @@ public class TestHDFS {
     public void upload() throws Exception {
         BufferedInputStream input = new BufferedInputStream(new FileInputStream(new File("./data/hello.txt")));
 
-        Path path = new Path("/test/out.txt");
+        Path path = new Path("/data/word_count.txt");
         FSDataOutputStream output = fs.create(path);
 
         IOUtils.copyBytes(input, output, conf, true);
@@ -105,6 +107,9 @@ public class TestHDFS {
         System.out.println((char) in.readByte());
         System.out.println((char) in.readByte());
         System.out.println((char) in.readByte());
+
+
+        new Thread();
     }
 
     @Test
