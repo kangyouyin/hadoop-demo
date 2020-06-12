@@ -1,4 +1,4 @@
-package com.kyy.hadoopdemo.wc;
+package com.kyy.hadoopdemo.wc2;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -15,60 +15,49 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 
-
 /**
- * Created by kangyouyin on 2020/6/9.
+ * Created by kangyouyin on 2020/6/11.
  */
-public class WordCount {
+public class WordCountFrequency {
 
-    //bin/hadoop command [genericOptions] [commandOptions]
-    //    hadoop jar  ooxx.jar  ooxx   -D  ooxx=ooxx  inpath  outpath
-    //  args :   2类参数  genericOptions   commandOptions
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration(true);
         conf.addResource("./cluster/core-site.xml");
         conf.addResource("./cluster/hdfs-site.xml");
-        conf.addResource("./cluster/yarn-site.xml");
         conf.addResource("./cluster/mapred-site.xml");
-
+        conf.addResource("./cluster/yarn-site.xml");
 
         GenericOptionsParser genericOptionsParser = new GenericOptionsParser(conf, args);
         String[] otherArgs = genericOptionsParser.getRemainingArgs();
 
-        //让框架知道是windows异构平台运行
-//        conf.set("mapreduce.app-submission.cross-platform", "true");
-
         System.setProperty("HADOOP_USER_NAME", "root");
         Job job = Job.getInstance(conf);
-        job.setJobName("WordCount");
-
+        job.setJobName("WordCountFrequency");
         job.setJar("/Users/kangyouyin/IdeaProjects/hadoop-demo/target/hadoop-demo-0.0.1-SNAPSHOT.jar");
-        job.setJarByClass(WordCount.class);
+        job.setJarByClass(WordCountFrequency.class);
 
-//        Path inputFile = new Path("/data/word_count.txt");
         Path inputFile = new Path(otherArgs[0]);
         if (!inputFile.getFileSystem(conf).exists(inputFile)) {
-            BufferedInputStream inputLocal = new BufferedInputStream(new FileInputStream(new File("./data/hello.txt")));
+            BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(new File("./data/word_count.txt")));
             FSDataOutputStream fsDataOutputStream = inputFile.getFileSystem(conf).create(inputFile);
-            IOUtils.copyBytes(inputLocal, fsDataOutputStream, conf, true);
+            IOUtils.copyBytes(inputStream, fsDataOutputStream, conf, true);
         }
         TextInputFormat.addInputPath(job, inputFile);
 
-//        Path outputFile = new Path("/data/result");
-        Path outputFile = new Path(otherArgs[1]);
-        if (outputFile.getFileSystem(conf).exists(outputFile)) {
-            outputFile.getFileSystem(conf).delete(outputFile, true);
+        Path outFile = new Path(otherArgs[1]);
+        if (outFile.getFileSystem(conf).exists(outFile)) {
+            outFile.getFileSystem(conf).delete(outFile, true);
         }
-        TextOutputFormat.setOutputPath(job, outputFile);
+        TextOutputFormat.setOutputPath(job, outFile);
 
         job.setMapperClass(MyMapper.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
 
-        job.setReducerClass(MyReducer.class);
+        job.setReducerClass(MyReduce.class);
 
-        //        job.setNumReduceTasks(2);
-        // Submit the job, then poll for progress until the job is complete
         job.waitForCompletion(true);
     }
+
+
 }
